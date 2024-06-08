@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -g
 TARGET = server
-SRC = server.c sql_queries.c
+SRC = server.c sql_queries.c client_handler.c
 OBJ = $(SRC:.c=.o)
 
 $(TARGET): $(OBJ)
