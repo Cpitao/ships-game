@@ -35,6 +35,10 @@ int run_server() {
         fprintf(stderr, "socket error: %s\n", strerror(errno));
         return 1;
     }
+    if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0) {
+        fprintf(stderr, "setsockopt error: %s\n", strerror(errno));
+        return 1;
+    }
 
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
