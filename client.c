@@ -20,7 +20,11 @@ int main(int argc, char* argv[]) {
 
     int                 sockfd, err;
     struct sockaddr_in  servaddr;
-    char servip[] = "172.104.225.148";
+    char servip[16] = "172.104.225.148";
+
+    if (argc > 1) {
+        strncpy(servip, argv[1], 16);
+    }
     
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {

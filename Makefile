@@ -5,7 +5,7 @@ SERVER_TARGET = server
 CLIENT_TARGET = client
 
 SERVER_SRC = server.c sql_queries.c client_handler.c
-CLIENT_SRC = client.c sql_queries.c client_handler.c
+CLIENT_SRC = client.c
 
 SERVER_OBJ = $(SERVER_SRC:.c=.o)
 CLIENT_OBJ = $(CLIENT_SRC:.c=.o)
@@ -17,7 +17,7 @@ $(SERVER_TARGET): $(SERVER_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ -lsqlite3
 
 $(CLIENT_TARGET): $(CLIENT_OBJ)
-	$(CC) $(CFLAGS) -o $@ $^ -lsqlite3
+	$(CC) $(CFLAGS) -o $@ $^
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
