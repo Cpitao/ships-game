@@ -13,6 +13,7 @@
 #include        <string.h>
 #include        <unistd.h>
 #include        <sys/wait.h>
+#include        <netinet/tcp.h>
 #include        "client_handler.h"
 
 #ifndef SQL_QUERIES
@@ -82,6 +83,7 @@ int run_server(sqlite3 *db) {
             fprintf(stderr, "accept error: %s\n", strerror(errno));
             continue;
         }
+        // setsockopt(connfd, IPPROTO_TCP, TCP_NODELAY, &(char){1}, sizeof(int));
 
         if ((childpid = fork()) == 0) {
             close(listenfd);

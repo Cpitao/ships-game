@@ -7,6 +7,8 @@ void authenticate(int connfd, sqlite3 *db, User *user) {
     int authenticated = 0;
 
     while (!authenticated) {
+        char hello[256];
+        read_util(connfd, hello, 256);
         send_util(connfd, username_prompt);
 
         char username[USERNAME_LEN + 1];
@@ -22,7 +24,7 @@ void authenticate(int connfd, sqlite3 *db, User *user) {
             char password[PASSWORD_LEN + 1];
             n = read_util(connfd, password, PASSWORD_LEN);
             
-            if (strcmp(password, user->password)) {
+            if (strcmp(password, user->password) != 0) {
                 send_util(connfd, invalid_password);
                 continue;
             }

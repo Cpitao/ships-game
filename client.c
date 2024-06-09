@@ -23,6 +23,8 @@ void authenticate(int sockfd) {
     int authenticated = 0;
     char message[MSG_MAX_LEN];
     while (!authenticated) {
+        char hello[] = "HELLO";
+        send_util(sockfd, hello);
         read_util(sockfd, message, MSG_MAX_LEN);
         printf("%s", message);
 
@@ -31,37 +33,38 @@ void authenticate(int sockfd) {
         send_util(sockfd, username);
 
         read_util(sockfd, message, MSG_MAX_LEN);
-        if (!strcmp(message, invalid_username)) {
+        if (strncmp(message, invalid_username, strlen(invalid_username)) == 0) {
             printf("%s", message);
             continue;
         }
 
-        // user exists
-        if (!strcmp(message, password_prompt)) {
+        if (strcmp(message, password_prompt) == 0) { // user exists
             char password[PASSWORD_LEN + 1];
             printf("%s", message);
             scanf("%256s", password);
             send_util(sockfd, password);
 
             read_util(sockfd, message, MSG_MAX_LEN);
-            if (!strcmp(message, invalid_password)) {
+            if (strncmp(message, invalid_password, strlen(invalid_password)) == 0) { // invalid password
                 printf("%s", message);
                 continue;
-            } else if (!strcmp(message, auth_success)) {
+            } else if (strncmp(message, auth_success, strlen(auth_success)) == 0) { // password correct
                 authenticated = 1;
                 continue;
+            } else {
+                printf("Error, unrecognized message: %s", message);
             }
-        } else if (!strcmp(message, no_such_user)) { // user doesn't exist, register
+        } else if (strncmp(message, no_such_user, strlen(no_such_user)) == 0) { // user doesn't exist, register
             printf("%s", message);
             char password[PASSWORD_LEN + 1];
             scanf("%256s", password);
             send_util(sockfd, password);
             read_util(sockfd, message, MSG_MAX_LEN);
-            if (!strcmp(message, user_added)) { // registered successfully
+            if (strncmp(message, user_added, strlen(user_added)) == 0) { // registered successfully
                 printf("%s", message);
                 authenticated = 1;
                 continue;
-            } else if (!strcmp(message, user_add_failed)) { // user registration failed
+            } else if (strncmp(message, user_add_failed, strlen(user_add_failed)) == 0) { // user registration failed
                 printf("%s", message);
                 continue;
             }
@@ -83,7 +86,7 @@ int main(int argc, char* argv[]) {
     
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
-        fprintf(stderr, "socket error: %s\n", strerror(errno));
+        fprintf(stderr, "socket error: %s", strerror(errno));
         return 1;
     }
 
@@ -92,13 +95,13 @@ int main(int argc, char* argv[]) {
     servaddr.sin_port = htons(1337);
 
     if ((err = inet_pton(AF_INET, servip, &servaddr.sin_addr) <= 0)) {
-        if (err == 0) fprintf(stderr, "inet_pton error for %s\n", servip);
-        else fprintf(stderr, "inet_pton error for %s: %s\n", servip, strerror(errno));
+        if (err == 0) fprintf(stderr, "inet_pton error for %s", servip);
+        else fprintf(stderr, "inet_pton error for %s: %s", servip, strerror(errno));
         return 1;
     }
 
     if (connect(sockfd, (struct sockaddr*) &servaddr, sizeof(servaddr)) < 0) {
-        fprintf(stderr, "connect error: %s\n", strerror(errno));
+        fprintf(stderr, "connect error: %s", strerror(errno));
         return 1;
     }
 
