@@ -21,7 +21,7 @@
 int running = 1;
 
 void stop_server(int signum) {
-    printf("SIGINT received. Preparing to shutdown...");
+    printf("SIGINT received. Preparing to shutdown..."); fflush(stdout);
     running = 0;
 }
 
@@ -30,6 +30,8 @@ int run_server() {
     struct sockaddr_in servaddr, cliaddr;
     int childpid;
     socklen_t len;
+
+    signal(SIGINT, stop_server);
     
     if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         fprintf(stderr, "socket error: %s\n", strerror(errno));
@@ -55,9 +57,24 @@ int run_server() {
         return 1;
     }
 
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(listenfd, &fds);
+
+    struct timeval tv;
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
+
     fprintf(stdout, "Waiting for connections ... \n");
     while (running) {
         len = sizeof(cliaddr);
+
+        int retval = select(listenfd + 1, &fds, NULL, NULL, &tv);
+        if (retval == -1) {
+            fprintf(stderr, "select error: %s\n", strerror(errno));
+            continue;
+        } else if (retval == 0) continue;
+        
         if ((connfd = accept(listenfd, (struct sockaddr*) &cliaddr, &len)) < 0) {
             fprintf(stderr, "accept error: %s\n", strerror(errno));
             continue;
