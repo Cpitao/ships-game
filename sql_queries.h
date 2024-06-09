@@ -1,9 +1,14 @@
 #include        <sqlite3.h>
 
+#define SQL_QUERIES 1
+
+#define USERNAME_LEN 256
+#define PASSWORD_LEN 256
+
 typedef struct {
     int id;
-    char username[256];
-    char password[256];
+    char username[USERNAME_LEN + 1];
+    char password[PASSWORD_LEN + 1];
 } User;
 
 typedef struct {

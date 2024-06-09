@@ -85,7 +85,6 @@ int get_user(sqlite3 *db, User *user, const char *username) {
         snprintf(user->username, sizeof(user->username), "%s", db_username);
         snprintf(user->password, sizeof(user->password), "%s", db_password);
     } else if (rc == SQLITE_DONE) {
-        printf("No such user.\n");
         sqlite3_finalize(stmt);
         return SQLITE_DONE;
     } else {

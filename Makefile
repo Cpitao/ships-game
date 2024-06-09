@@ -4,8 +4,8 @@ CFLAGS = -Wall -g
 SERVER_TARGET = server
 CLIENT_TARGET = client
 
-SERVER_SRC = server.c sql_queries.c client_handler.c
-CLIENT_SRC = client.c
+SERVER_SRC = server.c sql_queries.c client_handler.c utils.c
+CLIENT_SRC = client.c utils.c
 
 SERVER_OBJ = $(SERVER_SRC:.c=.o)
 CLIENT_OBJ = $(CLIENT_SRC:.c=.o)

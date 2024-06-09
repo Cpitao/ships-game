@@ -13,8 +13,11 @@
 #include        <string.h>
 #include        <unistd.h>
 #include        <sys/wait.h>
-#include        "sql_queries.h"
 #include        "client_handler.h"
+
+#ifndef SQL_QUERIES
+#include        "sql_queries.h"
+#endif
 
 #define LISTENQ 100
 
@@ -25,7 +28,7 @@ void stop_server(int signum) {
     running = 0;
 }
 
-int run_server() {
+int run_server(sqlite3 *db) {
     int listenfd, connfd;
     struct sockaddr_in servaddr, cliaddr;
     int childpid;
@@ -57,16 +60,16 @@ int run_server() {
         return 1;
     }
 
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(listenfd, &fds);
-
     struct timeval tv;
     tv.tv_sec = 5;
     tv.tv_usec = 0;
 
     fprintf(stdout, "Waiting for connections ... \n");
     while (running) {
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(listenfd, &fds);
+
         len = sizeof(cliaddr);
 
         int retval = select(listenfd + 1, &fds, NULL, NULL, &tv);
@@ -82,7 +85,7 @@ int run_server() {
 
         if ((childpid = fork()) == 0) {
             close(listenfd);
-            handle_client(connfd);
+            handle_client(db, connfd);
             exit(0);
         }
         close(connfd);
@@ -98,10 +101,12 @@ int run_server() {
 }
 
 int main(int argc, char* argv[]) {
+
+    setvbuf(stdout, NULL, _IONBF, 0);
     
     sqlite3 *db = init_db();
     
-    run_server();
+    run_server(db);
 
     sqlite3_close(db);
     return 0;

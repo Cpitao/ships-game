@@ -1,6 +1,57 @@
-#include <stdio.h>
 #include "client_handler.h"
+#include "messages.h"
+#include <stdio.h>
 
-void handle_client(int connfd) {
-    printf("Handling client...");
+void authenticate(int connfd, sqlite3 *db, User *user) {
+    int n, status;
+    int authenticated = 0;
+
+    while (!authenticated) {
+        send_util(connfd, username_prompt);
+
+        char username[USERNAME_LEN + 1];
+        n = read_util(connfd, username, USERNAME_LEN);
+        if (n <= 0) {
+            send_util(connfd, invalid_username);
+            continue;
+        }
+
+        if ((status = get_user(db, user, username)) == SQLITE_OK) {
+            send_util(connfd, password_prompt);
+
+            char password[PASSWORD_LEN + 1];
+            n = read_util(connfd, password, PASSWORD_LEN);
+            
+            if (strcmp(password, user->password)) {
+                send_util(connfd, invalid_password);
+                continue;
+            }
+
+            authenticated = 1;
+            send_util(connfd, auth_success);
+        } else if (status == SQLITE_DONE) {
+            send_util(connfd, no_such_user);
+
+            char password[PASSWORD_LEN + 1];
+            n = read_util(connfd, password, PASSWORD_LEN);
+            if (n >= 0) {
+                strncpy(user->username, username, USERNAME_LEN + 1);
+                strncpy(user->password, password, PASSWORD_LEN + 1);
+                if ((status = add_user(db, user)) == SQLITE_OK) {
+                    send_util(connfd, user_added);
+                } else {
+                    send_util(connfd, user_add_failed);
+                }
+            }
+
+            authenticated = 1;
+        }
+    }
+}
+
+void handle_client(sqlite3 *db, int connfd) {
+    User user;
+
+    authenticate(connfd, db, &user);
+
 }
