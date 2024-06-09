@@ -1,16 +1,28 @@
 CC = gcc
 CFLAGS = -Wall -g
-TARGET = server
-SRC = server.c sql_queries.c client_handler.c
-OBJ = $(SRC:.c=.o)
 
-$(TARGET): $(OBJ)
+SERVER_TARGET = server
+CLIENT_TARGET = client
+
+SERVER_SRC = server.c sql_queries.c client_handler.c
+CLIENT_SRC = client.c sql_queries.c client_handler.c
+
+SERVER_OBJ = $(SERVER_SRC:.c=.o)
+CLIENT_OBJ = $(CLIENT_SRC:.c=.o)
+
+# Default target
+all: $(SERVER_TARGET) $(CLIENT_TARGET)
+
+$(SERVER_TARGET): $(SERVER_OBJ)
+	$(CC) $(CFLAGS) -o $@ $^ -lsqlite3
+
+$(CLIENT_TARGET): $(CLIENT_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ -lsqlite3
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -f $(SERVER_OBJ) $(CLIENT_OBJ) $(SERVER_TARGET) $(CLIENT_TARGET)
 
 .PHONY: clean
