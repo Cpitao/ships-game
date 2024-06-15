@@ -10,11 +10,13 @@ void set_ship(int fd, int size) {
         scanf("%255s", msg);
         send_util(fd, msg);
         read_util(fd, msg, 255);
-        if (strcmp(msg, "Invalid position") == 0) {
+        if (strcmp(msg, "Invalid position\n") == 0) {
             i--;
         }
         printf("%s\n", msg);
     }
+
+    send_util(fd, "OK");
 
     return;
 }

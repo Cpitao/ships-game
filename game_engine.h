@@ -15,7 +15,7 @@ enum CellStatus {
 };
 
 typedef struct {
-    enum CellStatus grid[BOARD_SIZE][BOARD_SIZE];
+    enum CellStatus grid[BOARD_SIZE + 2][BOARD_SIZE + 2];
 } Board;
 
 typedef struct {
@@ -27,6 +27,4 @@ int shoot(Board *board, int x, int y);
 int check_win(Board *board);
 int mask_board(Board *board, Board* masked_board);
 void board_to_string(Board* board, char* dest);
-int place_ship(Board* board, int **positions, int size);
-int valid_position_for_ship(Board* board, int* position);
 void play_game(Game* game, User* player);

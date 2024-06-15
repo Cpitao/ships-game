@@ -51,7 +51,7 @@ void authenticate(int sockfd) {
                 continue;
             } else if (strncmp(message, auth_success, strlen(auth_success)) == 0) { // password correct
                 authenticated = 1;
-                printf("Logged in!\n");
+                send_util(sockfd, "OK");
                 continue;
             } else {
                 printf("Error, unrecognized message: %s", message);

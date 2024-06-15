@@ -34,12 +34,21 @@ int mask_board(Board* board, Board* masked_board) {
 }
 
 void board_to_string(Board* board, char* dest) {
-    for (int i=0; i < BOARD_SIZE; i++) {
-        for (int j=0; j < BOARD_SIZE; j++) {
+    int dest_index = 0;
+    dest[dest_index++] = ' ';
+    for (int i=0; i < BOARD_SIZE - 1; i++) {
+        dest[dest_index++] = '0' + i + 1;
+    }
+    dest[dest_index++] = '1';
+    dest[dest_index++] = '0';
+    dest[dest_index++] = '\n';
+    for (int i = 1; i < BOARD_SIZE + 1; i++) {
+        dest[dest_index++] = 'A' + i - 1;
+        for (int j = 1; j < BOARD_SIZE + 1; j++) {
             char cell_char;
             switch (board->grid[i][j]) {
                 case EMPTY:
-                    cell_char = ' ';
+                    cell_char = '-';
                     break;
                 case SHIP:
                     cell_char = 'S';
@@ -54,36 +63,11 @@ void board_to_string(Board* board, char* dest) {
                     cell_char = 'P';
                     break;
             }
-            dest[i * BOARD_SIZE + j] = cell_char;
+            dest[dest_index++] = cell_char;
         }
+        dest[dest_index++] = '\n';
     }
-
-    dest[BOARD_SIZE * BOARD_SIZE] = '\0';
-}
-
-int valid_position_for_ship(Board* board, int* position) {
-    int x = position[0];
-    int y = position[1];
-
-    if (board->grid[x][y] == SHIP || board->grid[x][y] == PENDING) return 0;
-    int shifts[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}}; 
-    for (int s=0; s < 8; s++) {
-        if (board->grid[x - shifts[s][0]][y - shifts[s][0]] == SHIP) {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-int place_ship(Board* board, int **positions, int size) {
-    for (int i=0; i < size; i++) {
-        if (!valid_position_for_ship(board, positions[i])) return -1;
-    }
-    for (int i=0; i < size; i++) {
-        board->grid[positions[i][0]][positions[i][1]] = SHIP;
-    }
-
-    return 0;
+    dest[dest_index] = '\0';
 }
 
 void play_game(Game* game, User* player) {

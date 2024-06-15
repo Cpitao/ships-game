@@ -29,6 +29,8 @@ void authenticate(int connfd, sqlite3 *db, User *user) {
 
             authenticated = 1;
             send_util(connfd, auth_success);
+            char msg[2];
+            read_util(connfd, msg, 2);
         } else if (status == SQLITE_DONE) {
             send_util(connfd, no_such_user);
 
