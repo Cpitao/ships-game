@@ -5,6 +5,7 @@ void send_util(int fd, const char *message) {
         perror("send error");
         exit(1);
     }
+    printf("Send: %s\n", message);
 }
 
 int read_util(int fd, char* dest, size_t count) {
@@ -14,5 +15,6 @@ int read_util(int fd, char* dest, size_t count) {
         exit(1);
     }
     dest[n] = '\0';
+    printf("Read: %s\n", dest);
     return n;
 }

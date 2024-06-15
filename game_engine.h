@@ -1,14 +1,17 @@
+#include "sql_queries.h"
+
 #define BOARD_SIZE 10
 
-#define HIT 1
-#define MISS -1
+#define HIT_MOVE 1
+#define MISS_MOVE -1
 #define INVALID_MOVE 0
 
 enum CellStatus {
     EMPTY,
     SHIP,
     HIT,
-    MISS
+    MISS,
+    PENDING
 };
 
 typedef struct {
@@ -16,11 +19,14 @@ typedef struct {
 } Board;
 
 typedef struct {
-    Board player;
-    Board server;
+    Board player_board;
+    Board server_board;
 } Game;
 
 int shoot(Board *board, int x, int y);
 int check_win(Board *board);
-Board* mask_board(Board *board);
+int mask_board(Board *board, Board* masked_board);
 void board_to_string(Board* board, char* dest);
+int place_ship(Board* board, int **positions, int size);
+int valid_position_for_ship(Board* board, int* position);
+void play_game(Game* game, User* player);

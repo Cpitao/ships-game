@@ -87,6 +87,12 @@ int run_server(sqlite3 *db) {
 
         if ((childpid = fork()) == 0) {
             close(listenfd);
+            int flag = 1;
+            if (setsockopt(connfd, IPPROTO_TCP, TCP_NODELAY, (void *)&flag, sizeof(int)) < 0) {
+                perror("setsockopt");
+                close(connfd);
+                exit(EXIT_FAILURE);
+            }
             handle_client(db, connfd);
             exit(0);
         }

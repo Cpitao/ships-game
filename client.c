@@ -16,6 +16,7 @@
 #include        "sql_queries.h"
 #include        "messages.h"
 #include        "utils.h"
+#include        "game_client.h"
 
 #define MSG_MAX_LEN 4096
 
@@ -50,6 +51,7 @@ void authenticate(int sockfd) {
                 continue;
             } else if (strncmp(message, auth_success, strlen(auth_success)) == 0) { // password correct
                 authenticated = 1;
+                printf("Logged in!\n");
                 continue;
             } else {
                 printf("Error, unrecognized message: %s", message);
@@ -106,6 +108,8 @@ int main(int argc, char* argv[]) {
     }
 
     authenticate(sockfd);
+
+    set_all_ships(sockfd);
 
     close(sockfd);
 }

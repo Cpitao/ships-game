@@ -1,6 +1,4 @@
 #include "client_handler.h"
-#include "messages.h"
-#include <stdio.h>
 
 void authenticate(int connfd, sqlite3 *db, User *user) {
     int n, status;
@@ -51,9 +49,13 @@ void authenticate(int connfd, sqlite3 *db, User *user) {
     }
 }
 
+
+
 void handle_client(sqlite3 *db, int connfd) {
     User user;
 
     authenticate(connfd, db, &user);
-
+    printf("%s auth OK\n", user.username);
+    Game game;
+    init_game(connfd, &game);
 }
