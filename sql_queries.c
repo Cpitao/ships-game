@@ -130,39 +130,154 @@ int add_user(sqlite3 *db, const User *user) {
     sqlite3_finalize(stmt);
     return SQLITE_OK;
 }
-// todo: check if user already exists in scores table
 int add_win(sqlite3* db, const User* user) {
-    const char *SQL_ADD_WIN = 
-        "UPDATE scores SET wins = wins + 1 WHERE user_id = ?";
+    const char *SQL_CHECK_USER =
+            "SELECT COUNT(*) FROM scores WHERE user_id = ?";
+    const char *SQL_ADD_WIN =
+            "UPDATE scores SET wins = wins + 1 WHERE user_id = ?";
+    const char *SQL_INSERT_USER =
+            "INSERT INTO scores (user_id, wins) VALUES (?, 1)";
 
     sqlite3_stmt *stmt;
     int rc;
 
-    rc = sqlite3_prepare_v2(db, SQL_ADD_WIN, -1, &stmt, NULL);
+    rc = sqlite3_prepare_v2(db, SQL_CHECK_USER, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
         return rc;
     }
-
     rc = sqlite3_bind_int(stmt, 1, user->id);
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "Failed to bind user ID: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "Cannot bind parameter: %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
         return rc;
     }
-
     rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE) {
-        fprintf(stderr, "Execution failed: %s\n", sqlite3_errmsg(db));
+    if (rc != SQLITE_ROW) {
+        fprintf(stderr, "Cannot step statement: %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
         return rc;
     }
-
+    int user_exists = sqlite3_column_int(stmt, 0);
     sqlite3_finalize(stmt);
+
+    if (user_exists) {
+        rc = sqlite3_prepare_v2(db, SQL_ADD_WIN, -1, &stmt, NULL);
+        if (rc != SQLITE_OK) {
+            fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+            return rc;
+        }
+        rc = sqlite3_bind_int(stmt, 1, user->id);
+        if (rc != SQLITE_OK) {
+            fprintf(stderr, "Cannot bind parameter: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(stmt);
+            return rc;
+        }
+        rc = sqlite3_step(stmt);
+        if (rc != SQLITE_DONE) {
+            fprintf(stderr, "Execution failed: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(stmt);
+            return rc;
+        }
+        sqlite3_finalize(stmt);
+    } else {
+        rc = sqlite3_prepare_v2(db, SQL_INSERT_USER, -1, &stmt, NULL);
+        if (rc != SQLITE_OK) {
+            fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+            return rc;
+        }
+        rc = sqlite3_bind_int(stmt, 1, user->id);
+        if (rc != SQLITE_OK) {
+            fprintf(stderr, "Cannot bind parameter: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(stmt);
+            return rc;
+        }
+        rc = sqlite3_step(stmt);
+        if (rc != SQLITE_DONE) {
+            fprintf(stderr, "Execution failed: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(stmt);
+            return rc;
+        }
+        sqlite3_finalize(stmt);
+    }
 
     return SQLITE_OK;
 }
-// todo: implement function, important: check if user exists in scores table
 int add_loss(sqlite3* db, const User* user) {
+    const char *SQL_CHECK_USER =
+            "SELECT COUNT(*) FROM scores WHERE user_id = ?";
+    const char *SQL_ADD_LOSS =
+            "UPDATE scores SET loses = loses + 1 WHERE user_id = ?";
+    const char *SQL_INSERT_USER =
+            "INSERT INTO scores (user_id, loses) VALUES (?, 1)";
+
+    sqlite3_stmt *stmt;
+    int rc;
+
+    rc = sqlite3_prepare_v2(db, SQL_CHECK_USER, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        return rc;
+    }
+    rc = sqlite3_bind_int(stmt, 1, user->id);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Cannot bind parameter: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return rc;
+    }
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) {
+        fprintf(stderr, "Cannot step statement: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return rc;
+    }
+
+    int user_exists = sqlite3_column_int(stmt, 0);
+    sqlite3_finalize(stmt);
+
+    if (user_exists) {
+        rc = sqlite3_prepare_v2(db, SQL_ADD_LOSS, -1, &stmt, NULL);
+        if (rc != SQLITE_OK) {
+            fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+            return rc;
+        }
+
+        rc = sqlite3_bind_int(stmt, 1, user->id);
+        if (rc != SQLITE_OK) {
+            fprintf(stderr, "Cannot bind parameter: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(stmt);
+            return rc;
+        }
+
+        rc = sqlite3_step(stmt);
+        if (rc != SQLITE_DONE) {
+            fprintf(stderr, "Execution failed: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(stmt);
+            return rc;
+        }
+        sqlite3_finalize(stmt);
+    } else {
+        rc = sqlite3_prepare_v2(db, SQL_INSERT_USER, -1, &stmt, NULL);
+        if (rc != SQLITE_OK) {
+            fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+            return rc;
+        }
+
+        rc = sqlite3_bind_int(stmt, 1, user->id);
+        if (rc != SQLITE_OK) {
+            fprintf(stderr, "Cannot bind parameter: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(stmt);
+            return rc;
+        }
+
+        rc = sqlite3_step(stmt);
+        if (rc != SQLITE_DONE) {
+            fprintf(stderr, "Execution failed: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(stmt);
+            return rc;
+        }
+        sqlite3_finalize(stmt);
+    }
+
     return SQLITE_OK;
 }
