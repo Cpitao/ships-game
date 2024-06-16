@@ -36,14 +36,20 @@ int mask_board(Board* board, Board* masked_board) {
 void board_to_string(Board* board, char* dest) {
     int dest_index = 0;
     dest[dest_index++] = ' ';
+    dest[dest_index++] = ' ';
     for (int i=0; i < BOARD_SIZE - 1; i++) {
         dest[dest_index++] = '0' + i + 1;
     }
     dest[dest_index++] = '1';
     dest[dest_index++] = '0';
     dest[dest_index++] = '\n';
+    for (int i=0; i < BOARD_SIZE + 2; i++) {
+        dest[dest_index++] = '_';
+    }
+    dest[dest_index++] = '\n';
     for (int i = 1; i < BOARD_SIZE + 1; i++) {
         dest[dest_index++] = 'A' + i - 1;
+        dest[dest_index++] = '|';
         for (int j = 1; j < BOARD_SIZE + 1; j++) {
             char cell_char;
             switch (board->grid[i][j]) {
@@ -68,8 +74,4 @@ void board_to_string(Board* board, char* dest) {
         dest[dest_index++] = '\n';
     }
     dest[dest_index] = '\0';
-}
-
-void play_game(Game* game, User* player) {
-    
 }

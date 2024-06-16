@@ -35,3 +35,7 @@ void set_all_ships(int fd) {
         set_ship(fd, 1);
     }
 }
+
+void make_move(int fd) {
+    
+}
