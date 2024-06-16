@@ -60,4 +60,7 @@ void handle_client(sqlite3 *db, int connfd) {
     printf("%s auth OK\n", user.username);
     Game game;
     init_game(connfd, &game);
+    if(play_game(connfd, &game)) {
+        add_win(db, &user);
+    }
 }

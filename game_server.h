@@ -6,3 +6,4 @@
 #define ONE_SIZE 4
 
 void init_game(int connfd, Game* game);
+int play_game(int fd, Game* game);

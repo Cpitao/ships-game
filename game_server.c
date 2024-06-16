@@ -139,8 +139,8 @@ void generate_server_board(Board* board) {
 
 void init_game(int connfd, Game* game) {
     Board player_board, server_board;
-    for (int i=0; i <= BOARD_SIZE; i++) {
-        for (int j=0; j <= BOARD_SIZE; j++) {
+    for (int i=0; i <= BOARD_SIZE + 1; i++) {
+        for (int j=0; j <= BOARD_SIZE + 1; j++) {
             player_board.grid[i][j] = EMPTY;
             server_board.grid[i][j] = EMPTY;
         }
@@ -148,10 +148,75 @@ void init_game(int connfd, Game* game) {
     get_user_ships(connfd, &player_board);
     generate_server_board(&server_board);
 
-    char m[1024];
-    board_to_string(&server_board, m);
-    printf("%s", m);
-
     game->player_board = player_board;
     game->server_board = server_board;
+    srand(time(NULL));
+    game->move = rand() % 2;
+}
+
+/* return 1 if player wins, 0 on lose */
+int play_game(int fd, Game* game) {
+    srand(time(NULL));
+    char msg[2048];
+    while(1) {
+        if (game->move == SERVER_MOVE) {
+            int x = rand() % BOARD_SIZE + 1;
+            int y = rand() % BOARD_SIZE + 1;
+            if (game->player_board.grid[x][y] == HIT ||
+                game->player_board.grid[x][y] == MISS) continue;
+            if (shoot(&(game->player_board), x, y) == HIT_MOVE) {
+                char game_string[1024], header[64];
+                sprintf(header, "Server hit at %c%d", 'A' + x - 1, y);
+                game_to_string(game, game_string);
+                sprintf(msg, "%s\n%s", header, game_string);
+                send_util(fd, msg);
+            } else {
+                char game_string[1024], header[64];
+                sprintf(header, "Server miss at %c%d", 'A' + x - 1, y);
+                game->move = CLIENT_MOVE;
+                game_to_string(game, game_string);
+                sprintf(msg, "%s\n%s", header, game_string);
+                send_util(fd, msg);
+            }
+            read_util(fd, msg, 2);
+            if (check_win(&(game->player_board))) {
+                send_util(fd, "Server wins!\n");
+                return 0;
+            }
+        } else {
+            char your_move[] = "Your move: ";
+            send_util(fd, your_move);
+            read_util(fd, msg, 255);
+            int x, y;
+            x = tolower(msg[0]) - 'a' + 1;
+            if (strlen(msg) >= 2 && msg[1] == '1' && msg[2] == '0') y = 10;
+            else y = msg[1] - '0';
+
+            if (x <= 0 || x > 10 || y <= 0 || y > 10 || game->server_board.grid[x][y] == HIT || game->server_board.grid[x][y] == MISS) {
+                send_util(fd, "Invalid move\n");
+                read_util(fd, msg, 3);
+                continue;
+            }
+
+            if (shoot(&(game->server_board), x, y) == HIT_MOVE) {
+                char game_string[1024], header[64];
+                sprintf(header, "You hit at %c%d", 'A' + x - 1, y);
+                game_to_string(game, game_string);
+                sprintf(msg, "%s\n%s", header, game_string);
+                send_util(fd, msg);
+            } else {
+                char game_string[1024], header[64];
+                sprintf(header, "You miss at %c%d", 'A' + x - 1, y);
+                game->move = SERVER_MOVE;
+                game_to_string(game, game_string);
+                sprintf(msg, "%s\n%s", header, game_string);
+                send_util(fd, msg);
+            }
+            read_util(fd, msg, 2);
+            if (check_win(&(game->server_board))) {
+                send_util(fd, "You win!\n");
+                return 1;
+            }
+        }
+    }
 }

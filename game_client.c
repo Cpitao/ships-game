@@ -36,6 +36,22 @@ void set_all_ships(int fd) {
     }
 }
 
-void make_move(int fd) {
-    
+void play_game(int fd) {
+    char msg[2048];
+    while (1) {
+        read_util(fd, msg, 2047);
+        printf("%s", msg);
+        if (strcmp(msg, "Your move: ") == 0) {
+            scanf("%s", msg);
+            send_util(fd, msg);
+            read_util(fd, msg, 2047);
+            printf("%s", msg);
+            send_util(fd, "OK");
+        } else if (strcmp(msg, "Server wins!\n") == 0 ||
+            strcmp(msg, "You win!\n") == 0) {
+            return;
+        } else {
+            send_util(fd, "OK");
+        }
+    }
 }

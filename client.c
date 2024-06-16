@@ -108,8 +108,10 @@ int main(int argc, char* argv[]) {
     }
 
     authenticate(sockfd);
-
+    
     set_all_ships(sockfd);
+
+    play_game(sockfd);
 
     close(sockfd);
 }

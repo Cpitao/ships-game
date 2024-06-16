@@ -5,3 +5,4 @@
 
 void set_all_ships(int fd);
 void set_ship(int fd, int size);
+void play_game(int fd);
