@@ -68,15 +68,15 @@ void get_user_ships(int connfd, Board* board) {
     for (int i=0; i < FOUR_SIZE; i++) {
         prompt_ship(connfd, board, 4);
     }
-//    for (int i=0; i < THREE_SIZE; i++) {
-//        prompt_ship(connfd, board, 3);
-//    }
-//    for (int i=0; i < TWO_SIZE; i++) {
-//        prompt_ship(connfd, board, 2);
-//    }
-//    for (int i=0; i < ONE_SIZE; i++) {
-//        prompt_ship(connfd, board, 1);
-//    }
+    for (int i=0; i < THREE_SIZE; i++) {
+        prompt_ship(connfd, board, 3);
+    }
+    for (int i=0; i < TWO_SIZE; i++) {
+        prompt_ship(connfd, board, 2);
+    }
+    for (int i=0; i < ONE_SIZE; i++) {
+        prompt_ship(connfd, board, 1);
+    }
 }
 
 void generate_ship(Board* board, int size) {

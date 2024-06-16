@@ -119,7 +119,9 @@ void* receive_multicast(void* arg) {
             exit(1);
         }
         msgbuf[nbytes] = '\0';
-        printf("Received multicast message: %s\n", msgbuf);
+        printf("\n------------------------------------\n");
+        printf("Received multicast message: %s", msgbuf);
+        printf("------------------------------------\n");
     }
 
     close(multicast_fd);

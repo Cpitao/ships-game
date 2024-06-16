@@ -54,10 +54,32 @@ int send_multicast_message(const char* message) {
     close(multicast_fd);
     return 0;
 }
+void prepare_scoreboard(sqlite3 *db, char *scoreboard, size_t scoreboard_len) {
+    sqlite3_stmt *stmt;
+    char query[1024];
+    int rc;
+
+    snprintf(query, sizeof(query), "select u.username as username, (sum(s.wins) - sum(s.loses)) as summary_score from users u join scores s on u.id = s.user_id group by u.username order by summary_score desc;");
+    rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare query: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    snprintf(scoreboard, scoreboard_len, "Scoreboard:\n");
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        char username[USERNAME_LEN + 1];
+        int score;
+        strncpy(username, (const char*) sqlite3_column_text(stmt, 0), USERNAME_LEN);
+        score = sqlite3_column_int(stmt, 1);
+        snprintf(scoreboard + strlen(scoreboard), scoreboard_len - strlen(scoreboard), "%s: %d\n", username, score);
+    }
+    sqlite3_finalize(stmt);
+}
 
 void update_scoreboard(sqlite3 *db) {
-    char scoreboard[1024] = "dupa dupa multicast\n";
-//    prepare_scoreboard(db, scoreboard, sizeof(scoreboard));
+    char scoreboard[1024];
+    prepare_scoreboard(db, scoreboard, sizeof(scoreboard));
 
     if (send_multicast_message(scoreboard) < 0) {
         fprintf(stderr, "Error sending multicast message\n");
@@ -145,16 +167,13 @@ int run_server(sqlite3 *db) {
 }
 
 int main(int argc, char* argv[]) {
-
     setvbuf(stdout, NULL, _IONBF, 0);
-    
     sqlite3 *db = init_db();
     if (db == NULL) {
         fprintf(stderr, "Error initializing database\n");
         return 1;
     }
     run_server(db);
-
     sqlite3_close(db);
     return 0;
 }
