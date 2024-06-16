@@ -19,7 +19,7 @@ int shoot(Board* board, int x, int y) {
     int to_check_len = 1;
     int shifts[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
     int sank = 1;
-    while (to_check_len > idx) {
+    while (to_check_len > idx && idx < 4) {
         for (int i=0; i < 4; i++) {
             if (board->grid[to_check[idx][0] + shifts[i][0]][to_check[idx][1] + shifts[i][1]] == SHIP) {
                 sank = 0;
@@ -27,8 +27,8 @@ int shoot(Board* board, int x, int y) {
             } else if (board->grid[to_check[idx][0] + shifts[i][0]][to_check[idx][1] + shifts[i][1]] == HIT) {
                 int already_in = 0;
                 for (int j=0; j < to_check_len; j++) {
-                    if (to_check[j][0] == to_check[idx][0] + shifts[j][0] &&
-                        to_check[j][1] == to_check[idx][1] + shifts[j][1]) {
+                    if (to_check[j][0] == to_check[idx][0] + shifts[i][0] &&
+                        to_check[j][1] == to_check[idx][1] + shifts[i][1]) {
                             already_in = 1;
                             break;
                         }
