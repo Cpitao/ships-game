@@ -68,15 +68,15 @@ void get_user_ships(int connfd, Board* board) {
     for (int i=0; i < FOUR_SIZE; i++) {
         prompt_ship(connfd, board, 4);
     }
-//    for (int i=0; i < THREE_SIZE; i++) {
-//        prompt_ship(connfd, board, 3);
-//    }
-//    for (int i=0; i < TWO_SIZE; i++) {
-//        prompt_ship(connfd, board, 2);
-//    }
-//    for (int i=0; i < ONE_SIZE; i++) {
-//        prompt_ship(connfd, board, 1);
-//    }
+    for (int i=0; i < THREE_SIZE; i++) {
+        prompt_ship(connfd, board, 3);
+    }
+    for (int i=0; i < TWO_SIZE; i++) {
+        prompt_ship(connfd, board, 2);
+    }
+    for (int i=0; i < ONE_SIZE; i++) {
+        prompt_ship(connfd, board, 1);
+    }
 }
 
 void generate_ship(Board* board, int size) {
@@ -157,8 +157,6 @@ void init_game(int connfd, Game* game) {
 /* return 1 if player wins, 0 on lose */
 int play_game(int fd, Game* game) {
     srand(time(NULL));
-    sleep(1);
-    return rand() % 2;
     char msg[2048];
     while(1) {
         if (game->move == SERVER_MOVE) {
