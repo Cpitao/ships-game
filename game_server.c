@@ -156,8 +156,6 @@ void init_game(int connfd, Game* game) {
 
 /* return 1 if player wins, 0 on lose */
 int play_game(int fd, Game* game) {
-    sleep(1);
-    return rand() % 2;
     srand(time(NULL));
     char msg[2048];
     while(1) {
