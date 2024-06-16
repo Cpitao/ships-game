@@ -130,7 +130,7 @@ int add_user(sqlite3 *db, const User *user) {
     sqlite3_finalize(stmt);
     return SQLITE_OK;
 }
-
+// todo: check if user already exists in scores table
 int add_win(sqlite3* db, const User* user) {
     const char *SQL_ADD_WIN = 
         "UPDATE scores SET wins = wins + 1 WHERE user_id = ?";
@@ -160,5 +160,9 @@ int add_win(sqlite3* db, const User* user) {
 
     sqlite3_finalize(stmt);
 
+    return SQLITE_OK;
+}
+// todo: implement function, important: check if user exists in scores table
+int add_loss(sqlite3* db, const User* user) {
     return SQLITE_OK;
 }

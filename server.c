@@ -1,32 +1,89 @@
-#include        <sys/types.h>
-#include        <sys/socket.h>
-#include        <sys/time.h>
-#include        <time.h>
-#include        <netinet/in.h>
-#include        <arpa/inet.h>
-#include        <errno.h>
-#include        <fcntl.h>
-#include        <netdb.h>
-#include        <signal.h>
-#include        <stdio.h>
-#include        <stdlib.h>
-#include        <string.h>
-#include        <unistd.h>
-#include        <sys/wait.h>
-#include        <netinet/tcp.h>
-#include        "client_handler.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <time.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <netinet/tcp.h>
+#include "client_handler.h"
 
 #ifndef SQL_QUERIES
 #include        "sql_queries.h"
 #endif
 
 #define LISTENQ 100
+#define MULTICAST_GROUP "239.0.0.1"
+#define MULTICAST_PORT 12345
 
 int running = 1;
 
 void stop_server(int signum) {
     printf("SIGINT received. Preparing to shutdown..."); fflush(stdout);
     running = 0;
+}
+
+int send_multicast_message(const char* message) {
+    int multicast_fd;
+    struct sockaddr_in multicast_addr;
+
+    if ((multicast_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        fprintf(stderr, "socket error: %s\n", strerror(errno));
+        return -1;
+    }
+
+    memset(&multicast_addr, 0, sizeof(multicast_addr));
+    multicast_addr.sin_family = AF_INET;
+    multicast_addr.sin_addr.s_addr = inet_addr(MULTICAST_GROUP);
+    multicast_addr.sin_port = htons(MULTICAST_PORT);
+
+    if (sendto(multicast_fd, message, strlen(message), 0, (struct sockaddr*) &multicast_addr, sizeof(multicast_addr)) < 0) {
+        fprintf(stderr, "sendto error: %s\n", strerror(errno));
+        close(multicast_fd);
+        return -1;
+    }
+
+    close(multicast_fd);
+    return 0;
+}
+void prepare_scoreboard(sqlite3 *db, char *scoreboard, size_t scoreboard_len) {
+    sqlite3_stmt *stmt;
+    char query[1024];
+    int rc;
+
+    snprintf(query, sizeof(query), "select u.username as username, (sum(s.wins) - sum(s.loses)) as summary_score from users u join scores s on u.id = s.user_id group by u.username order by summary_score desc;");
+    rc = sqlite3_prepare_v2(db, query, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare query: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    snprintf(scoreboard, scoreboard_len, "Scoreboard:\n");
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        char username[USERNAME_LEN + 1];
+        int score;
+        strncpy(username, (const char*) sqlite3_column_text(stmt, 0), USERNAME_LEN);
+        score = sqlite3_column_int(stmt, 1);
+        snprintf(scoreboard + strlen(scoreboard), scoreboard_len - strlen(scoreboard), "%s: %d\n", username, score);
+    }
+    sqlite3_finalize(stmt);
+}
+
+void update_scoreboard(sqlite3 *db) {
+    char scoreboard[1024];
+    prepare_scoreboard(db, scoreboard, sizeof(scoreboard));
+
+    if (send_multicast_message(scoreboard) < 0) {
+        fprintf(stderr, "Error sending multicast message\n");
+    }
 }
 
 int run_server(sqlite3 *db) {
@@ -94,6 +151,7 @@ int run_server(sqlite3 *db) {
                 exit(EXIT_FAILURE);
             }
             handle_client(db, connfd);
+            update_scoreboard(db);
             exit(0);
         }
         close(connfd);
@@ -101,7 +159,7 @@ int run_server(sqlite3 *db) {
 
     int pid;
     while ((pid = wait(NULL)) > 0) {
-        fprintf(stdout, "Child %d finished", pid);
+        fprintf(stdout, "Child %d finished\n", pid);
     }
 
     printf("Closing...");
@@ -109,13 +167,13 @@ int run_server(sqlite3 *db) {
 }
 
 int main(int argc, char* argv[]) {
-
     setvbuf(stdout, NULL, _IONBF, 0);
-    
     sqlite3 *db = init_db();
-    
+    if (db == NULL) {
+        fprintf(stderr, "Error initializing database\n");
+        return 1;
+    }
     run_server(db);
-
     sqlite3_close(db);
     return 0;
 }

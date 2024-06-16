@@ -17,7 +17,7 @@ $(SERVER_TARGET): $(SERVER_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ -lsqlite3
 
 $(CLIENT_TARGET): $(CLIENT_OBJ)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ -lpthread
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
